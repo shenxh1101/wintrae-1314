@@ -39,6 +39,7 @@ const RepairCard: React.FC<RepairCardProps> = ({ order, onClick }) => {
         styles.card,
         order.urgeRecords?.length > 0 && styles.urged,
         order.status === 'completed' && styles.pendingConfirm,
+        order.status === 'confirming' && styles.pendingRate,
       )}
       onClick={onClick}
     >
@@ -55,6 +56,11 @@ const RepairCard: React.FC<RepairCardProps> = ({ order, onClick }) => {
           {order.status === 'completed' && (
             <View className={classNames(styles.smallBadge, styles.confirmBadge)}>
               待确认
+            </View>
+          )}
+          {order.status === 'confirming' && (
+            <View className={classNames(styles.smallBadge, styles.rateBadge)}>
+              待评价
             </View>
           )}
         </View>
@@ -111,6 +117,14 @@ const RepairCard: React.FC<RepairCardProps> = ({ order, onClick }) => {
               </View>
             )}
           </View>
+        </View>
+      )}
+
+      {order.status === 'confirming' && (
+        <View className={styles.rateTip}>
+          <Text className={styles.rateTipIcon}>⭐</Text>
+          <Text className={styles.rateTipText}>您已确认完工，请点击进行服务评价</Text>
+          <Text className={styles.rateTipArrow}>›</Text>
         </View>
       )}
 

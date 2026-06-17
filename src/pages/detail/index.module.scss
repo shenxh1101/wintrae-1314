@@ -70,6 +70,25 @@
   line-height: $line-height-normal;
 }
 
+.rateTip {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-sm $spacing-md;
+  background: linear-gradient(135deg, rgba(82,196,26,0.25) 0%, rgba(250,173,20,0.15) 100%);
+  border-radius: $radius-md;
+  margin-bottom: $spacing-md;
+}
+
+.rateTipIcon { font-size: $font-size-md; }
+
+.rateTipText {
+  font-size: $font-size-sm;
+  color: #fff;
+  font-weight: $font-weight-medium;
+  line-height: $line-height-normal;
+}
+
 .infoRow {
   display: flex;
   flex-wrap: wrap;

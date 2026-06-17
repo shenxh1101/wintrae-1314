@@ -245,8 +245,9 @@ const DetailPage: React.FC = () => {
   const canProcess = role === 'property' && order.status === 'processing' && order.assignedTo
   const canComplete = role === 'property' && order.status === 'processing' && order.assignedTo
   const canConfirmComplete = role === 'resident' && order.status === 'completed'
+  const canRate = role === 'resident' && order.status === 'confirming'
   const canUrge = role === 'resident' && (order.status === 'pending' || order.status === 'processing')
-  const canSupplement = order.status !== 'rated'
+  const canSupplement = order.status !== 'rated' && order.status !== 'confirming'
   const canUpdateTime = role === 'property' && order.status === 'processing'
 
   return (
@@ -289,6 +290,14 @@ const DetailPage: React.FC = () => {
               最近催单：{formatDateTime(order.urgeRecords[order.urgeRecords.length - 1].time)}
               {order.urgeRecords[order.urgeRecords.length - 1].remark &&
                 ` · ${order.urgeRecords[order.urgeRecords.length - 1].remark}`}
+            </Text>
+          </View>
+        )}
+        {order.status === 'confirming' && (
+          <View className={styles.rateTip}>
+            <Text className={styles.rateTipIcon}>⭐</Text>
+            <Text className={styles.rateTipText}>
+              您已确认维修完成，请对本次服务进行评价
             </Text>
           </View>
         )}
@@ -439,6 +448,14 @@ const DetailPage: React.FC = () => {
             确认完成
           </Button>
         )}
+        {canRate && (
+          <Button
+            className={classNames(styles.footerBtn, styles.success)}
+            onClick={() => setShowRatingModal(true)}
+          >
+            ⭐ 立即评价服务
+          </Button>
+        )}
         {canUrge && (
           <Button
             className={classNames(styles.footerBtn, styles.urgent)}
@@ -447,7 +464,7 @@ const DetailPage: React.FC = () => {
             催单
           </Button>
         )}
-        {canSupplement && !canAccept && !canAssign && !canProcess && !canComplete && !canConfirmComplete && !canUrge && (
+        {canSupplement && !canAccept && !canAssign && !canProcess && !canComplete && !canConfirmComplete && !canUrge && !canRate && (
           <Button className={styles.footerBtn} onClick={() => setShowSupplementModal(true)}>
             补充说明
           </Button>

@@ -11,6 +11,7 @@ import styles from './index.module.scss'
 const HomePage: React.FC = () => {
   const orders = useRepairStore(state => state.orders)
   const getServiceStats = useRepairStore(state => state.getServiceStats)
+  const getWeeklyTrend = useRepairStore(state => state.getWeeklyTrend)
   const currentRole = useRepairStore(state => state.currentRole)
   const [announcements] = useState<Announcement[]>(getAnnouncements())
 
@@ -22,6 +23,11 @@ const HomePage: React.FC = () => {
   }), [orders])
 
   const serviceStats = useMemo(() => getServiceStats(), [orders, getServiceStats])
+  const weeklyTrend = useMemo(() => getWeeklyTrend(), [orders, getWeeklyTrend])
+  const trendMax = useMemo(() => {
+    const m = Math.max(1, ...weeklyTrend.flatMap(d => [d.completed, d.confirmed, d.rated]))
+    return m
+  }, [weeklyTrend])
 
   usePullDownRefresh(() => {
     setTimeout(() => {
@@ -189,6 +195,57 @@ const HomePage: React.FC = () => {
                 ))}
               </View>
             )}
+            <View className={styles.trendSection}>
+              <View className={styles.trendHeader}>
+                <Text className={styles.rankTitle}>📈 近 7 天闭环趋势</Text>
+                <View className={styles.trendLegend}>
+                  <View className={styles.legendItem}>
+                    <View className={classNames(styles.legendDot, styles.completed)} />
+                    <Text>完工</Text>
+                  </View>
+                  <View className={styles.legendItem}>
+                    <View className={classNames(styles.legendDot, styles.confirmed)} />
+                    <Text>确认</Text>
+                  </View>
+                  <View className={styles.legendItem}>
+                    <View className={classNames(styles.legendDot, styles.rated)} />
+                    <Text>评价</Text>
+                  </View>
+                </View>
+              </View>
+              <View className={styles.trendChart}>
+                {weeklyTrend.map(d => (
+                  <View key={d.date} className={styles.trendDay}>
+                    <View className={styles.trendBars}>
+                      <View className={styles.barWrap}>
+                        <View
+                          className={classNames(styles.trendBar, styles.completed)}
+                          style={{ height: `${(d.completed / trendMax) * 100}%` }}
+                        />
+                      </View>
+                      <View className={styles.barWrap}>
+                        <View
+                          className={classNames(styles.trendBar, styles.confirmed)}
+                          style={{ height: `${(d.confirmed / trendMax) * 100}%` }}
+                        />
+                      </View>
+                      <View className={styles.barWrap}>
+                        <View
+                          className={classNames(styles.trendBar, styles.rated)}
+                          style={{ height: `${(d.rated / trendMax) * 100}%` }}
+                        />
+                      </View>
+                    </View>
+                    <View className={styles.trendDayMeta}>
+                      <Text className={styles.trendLabel}>{d.label}</Text>
+                      {d.avgRating > 0 && (
+                        <Text className={styles.trendRating}>⭐{d.avgRating}</Text>
+                      )}
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
           </View>
         </View>
       )}

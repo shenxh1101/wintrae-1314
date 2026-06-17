@@ -13,6 +13,15 @@ interface ServiceStats {
   facilityRank: { name: string; count: number }[]
 }
 
+export interface DailyTrend {
+  date: string
+  label: string
+  completed: number
+  confirmed: number
+  rated: number
+  avgRating: number
+}
+
 export interface OrderFilters {
   keyword?: string
   building?: string
@@ -65,6 +74,7 @@ interface RepairState {
   toggleMaintainerStatus: (maintainerId: string) => void
 
   getServiceStats: () => ServiceStats
+  getWeeklyTrend: () => DailyTrend[]
 
   resetToDefault: () => void
 }
@@ -447,6 +457,48 @@ export const useRepairStore = create<RepairState>()(
           maintainerRank,
           facilityRank
         }
+      },
+
+      getWeeklyTrend: () => {
+        const orders = get().orders
+        const pad = (n: number) => String(n).padStart(2, '0')
+        const ymd = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+        const md = (d: Date) => `${pad(d.getMonth() + 1)}/${pad(d.getDate())}`
+
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const days: DailyTrend[] = []
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(today)
+          d.setDate(d.getDate() - i)
+          days.push({ date: ymd(d), label: md(d), completed: 0, confirmed: 0, rated: 0, avgRating: 0 })
+        }
+
+        const rateByDay = new Map<string, number[]>()
+
+        orders.forEach(o => {
+          o.processingRecords?.forEach(r => {
+            const d = ymd(new Date(r.time))
+            const day = days.find(x => x.date === d)
+            if (!day) return
+            if (r.type === 'complete') day.completed++
+            if (r.type === 'confirm') day.confirmed++
+            if (r.type === 'rate' && o.rating) {
+              day.rated++
+              if (!rateByDay.has(d)) rateByDay.set(d, [])
+              rateByDay.get(d)!.push(o.rating)
+            }
+          })
+        })
+
+        days.forEach(d => {
+          const rs = rateByDay.get(d.date)
+          if (rs && rs.length > 0) {
+            d.avgRating = Number((rs.reduce((a, b) => a + b, 0) / rs.length).toFixed(1))
+          }
+        })
+
+        return days
       },
 
       resetToDefault: () => {

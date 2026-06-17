@@ -21,9 +21,16 @@
   margin-bottom: $spacing-lg;
 }
 
+.summaryScope {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-normal;
+  opacity: 0.85;
+  margin-left: $spacing-xs;
+}
+
 .summaryGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: $spacing-md;
 }
 
@@ -32,6 +39,16 @@
   background: rgba(255, 255, 255, 0.15);
   border-radius: $radius-md;
   padding: $spacing-sm $spacing-xs;
+  min-height: 120rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.summarySub {
+  font-size: $font-size-xs;
+  opacity: 0.75;
+  margin-top: 4rpx;
 }
 
 .filteredMeta {
@@ -47,6 +64,7 @@
   .urgentMeta { color: #fff3b0; }
   .urgedMeta { color: #ffd4d4; }
   .pendingConfirmMeta { color: #ffe0b2; }
+  .pendingRateMeta { color: #b7eb8f; }
 }
 
 .searchRow {
@@ -359,6 +377,68 @@
 .resultCount {
   font-size: $font-size-sm;
   color: $color-text-tertiary;
+}
+
+.followUpSection {
+  margin-bottom: $spacing-lg;
+  background: linear-gradient(135deg, rgba(250, 140, 22, 0.08) 0%, rgba(82, 196, 26, 0.06) 100%);
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  border: 2rpx solid rgba(250, 140, 22, 0.2);
+}
+
+.followUpList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  margin-top: $spacing-sm;
+}
+
+.followUpCard {
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-md;
+  border-left: 6rpx solid $color-warning;
+  transition: all $transition-base;
+
+  &.confirming {
+    border-left-color: $color-success;
+  }
+
+  &:active {
+    transform: scale(0.99);
+  }
+}
+
+.followUpHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-sm;
+}
+
+.followUpTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  flex: 1;
+  @include text-ellipsis;
+}
+
+.followUpMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  margin-bottom: $spacing-md;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.followUpMetaItem { display: inline-flex; align-items: center; gap: 4rpx; }
+
+.followUpActions {
+  display: flex;
+  gap: $spacing-sm;
 }
 
 .orderHeader {

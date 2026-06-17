@@ -76,16 +76,28 @@ const WorkbenchPage: React.FC = () => {
   const topStats = useMemo(() => {
     const scope = filteredOrders
     const scopeAll = orders
+    const scopeRated = scope.filter(o => o.status === 'rated' && o.rating)
+    const scopeAvg = scopeRated.length > 0
+      ? Number((scopeRated.reduce((s, o) => s + (o.rating || 0), 0) / scopeRated.length).toFixed(1))
+      : '--'
     return {
-      total: scopeAll.length,
-      pending: scopeAll.filter(o => o.status === 'pending').length,
-      processing: scopeAll.filter(o => o.status === 'processing').length,
-      pendingConfirm: scopeAll.filter(o => o.status === 'completed').length,
-      avgRating: getServiceStats().avgRating || '--',
+      total: scope.length,
+      totalAll: scopeAll.length,
+      pending: scope.filter(o => o.status === 'pending').length,
+      pendingAll: scopeAll.filter(o => o.status === 'pending').length,
+      processing: scope.filter(o => o.status === 'processing').length,
+      processingAll: scopeAll.filter(o => o.status === 'processing').length,
+      pendingConfirm: scope.filter(o => o.status === 'completed').length,
+      pendingConfirmAll: scopeAll.filter(o => o.status === 'completed').length,
+      pendingRate: scope.filter(o => o.status === 'confirming').length,
+      pendingRateAll: scopeAll.filter(o => o.status === 'confirming').length,
+      avgRating: scopeAvg,
+      avgRatingAll: getServiceStats().avgRating || '--',
       filteredCount: scope.length,
       urgentInScope: scope.filter(o => o.urgency === 'urgent' || o.urgency === 'critical').length,
       urgedInScope: scope.filter(o => (o.urgeRecords?.length || 0) > 0).length,
-      pendingConfirmInScope: scope.filter(o => o.status === 'completed').length
+      pendingConfirmInScope: scope.filter(o => o.status === 'completed').length,
+      pendingRateInScope: scope.filter(o => o.status === 'confirming').length,
     }
   }, [filteredOrders, orders, getServiceStats])
 
@@ -218,34 +230,60 @@ const WorkbenchPage: React.FC = () => {
     urged: getUrgedOrders().length
   }), [orders, getFilteredOrders, getUrgedOrders])
 
+  const hasActiveFilter = keyword || building || facilityType || urgency || maintainerName || activeTab !== 'all'
+
+  const handleNudgeConfirm = useCallback((orderId: string, type: 'confirm' | 'rate') => {
+    const tip = type === 'confirm' ? '已提醒住户确认完工' : '已提醒住户完成评价'
+    Taro.showToast({ title: tip, icon: 'success' })
+  }, [])
+
+  const pendingFollowUpOrders = useMemo(
+    () => orders.filter(o => o.status === 'completed' || o.status === 'confirming'),
+    [orders]
+  )
+
   return (
     <ScrollView className={styles.container} scrollY>
       <View className={styles.summarySection}>
-        <Text className={styles.summaryTitle}>今日工单概览</Text>
+        <Text className={styles.summaryTitle}>
+          工单概览{hasActiveFilter && <Text className={styles.summaryScope}>（当前筛选范围）</Text>}
+        </Text>
         <View className={styles.summaryGrid}>
           <View className={styles.summaryItem}>
             <Text className={styles.summaryNum}>{topStats.total}</Text>
             <Text className={styles.summaryLabel}>总工单</Text>
+            <Text className={styles.summarySub}>全量 {topStats.totalAll}</Text>
           </View>
           <View className={styles.summaryItem}>
             <Text className={styles.summaryNum}>{topStats.pending}</Text>
             <Text className={styles.summaryLabel}>待接单</Text>
+            <Text className={styles.summarySub}>全量 {topStats.pendingAll}</Text>
           </View>
           <View className={styles.summaryItem}>
             <Text className={styles.summaryNum}>{topStats.processing}</Text>
             <Text className={styles.summaryLabel}>处理中</Text>
+            <Text className={styles.summarySub}>全量 {topStats.processingAll}</Text>
           </View>
           <View className={styles.summaryItem}>
             <Text className={styles.summaryNum}>{topStats.pendingConfirm}</Text>
             <Text className={styles.summaryLabel}>待确认</Text>
+            <Text className={styles.summarySub}>全量 {topStats.pendingConfirmAll}</Text>
+          </View>
+          <View className={styles.summaryItem}>
+            <Text className={styles.summaryNum}>{topStats.pendingRate}</Text>
+            <Text className={styles.summaryLabel}>待评价</Text>
+            <Text className={styles.summarySub}>全量 {topStats.pendingRateAll}</Text>
           </View>
           <View className={styles.summaryItem}>
             <Text className={styles.summaryNum}>{topStats.avgRating}</Text>
             <Text className={styles.summaryLabel}>平均评分</Text>
+            <Text className={styles.summarySub}>全量 {topStats.avgRatingAll}</Text>
           </View>
         </View>
         <View className={styles.filteredMeta}>
-          <Text>当前筛选：匹配 {topStats.filteredCount} 单</Text>
+          <Text>
+            {hasActiveFilter ? `当前筛选：匹配 ${topStats.filteredCount} 单` : `共 ${topStats.totalAll} 单`}
+          </Text>
           {topStats.urgentInScope > 0 && (
             <Text className={styles.urgentMeta}>· 紧急 {topStats.urgentInScope}</Text>
           )}
@@ -254,6 +292,9 @@ const WorkbenchPage: React.FC = () => {
           )}
           {topStats.pendingConfirmInScope > 0 && (
             <Text className={styles.pendingConfirmMeta}>· 待确认 {topStats.pendingConfirmInScope}</Text>
+          )}
+          {topStats.pendingRateInScope > 0 && (
+            <Text className={styles.pendingRateMeta}>· 待评价 {topStats.pendingRateInScope}</Text>
           )}
         </View>
       </View>
@@ -394,6 +435,65 @@ const WorkbenchPage: React.FC = () => {
           ))}
         </View>
       </View>
+
+      {pendingFollowUpOrders.length > 0 && (
+        <View className={styles.followUpSection}>
+          <View className={styles.sectionHeader}>
+            <Text className={styles.sectionTitle}>⏰ 待确认跟进区</Text>
+            <Text className={styles.resultCount}>
+              待确认 {pendingFollowUpOrders.filter(o => o.status === 'completed').length} ·
+              待评价 {pendingFollowUpOrders.filter(o => o.status === 'confirming').length}
+            </Text>
+          </View>
+          <View className={styles.followUpList}>
+            {pendingFollowUpOrders.map(order => (
+              <View
+                key={order.id}
+                className={classNames(styles.followUpCard, order.status)}
+                onClick={() => handleOrderClick(order.id)}
+              >
+                <View className={styles.followUpHeader}>
+                  <Text className={styles.followUpTitle}>{order.title}</Text>
+                  <View className={classNames(styles.orderBadge, order.status)}>
+                    {order.status === 'completed' ? '待确认' : '待评价'}
+                  </View>
+                </View>
+                <View className={styles.followUpMeta}>
+                  <Text className={styles.followUpMetaItem}>📍 {formatLocation(order.location)}</Text>
+                  <Text className={styles.followUpMetaItem}>
+                    👷 {order.assignedTo || '未分派'}
+                  </Text>
+                  <Text className={styles.followUpMetaItem}>
+                    {order.status === 'completed' ? '🏁 完工时间：' : '✅ 确认时间：'}
+                    {order.status === 'completed'
+                      ? (order.processingRecords?.find(r => r.type === 'complete')?.time
+                          ? formatDateTime(order.processingRecords.find(r => r.type === 'complete')!.time)
+                          : '—')
+                      : (order.confirmedTime ? formatDateTime(order.confirmedTime) : '—')}
+                  </Text>
+                </View>
+                <View className={styles.followUpActions}>
+                  <Button
+                    className={classNames(styles.actionBtn, 'secondary')}
+                    onClick={(e) => { e.stopPropagation(); handleOrderClick(order.id) }}
+                  >
+                    查看详情
+                  </Button>
+                  <Button
+                    className={classNames(styles.actionBtn, order.status === 'completed' ? 'warning' : 'primary')}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleNudgeConfirm(order.id, order.status === 'completed' ? 'confirm' : 'rate')
+                    }}
+                  >
+                    {order.status === 'completed' ? '提醒确认' : '提醒评价'}
+                  </Button>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
 
       <View className={styles.sectionHeader}>
         <Text className={styles.sectionTitle}>📋 工单列表</Text>

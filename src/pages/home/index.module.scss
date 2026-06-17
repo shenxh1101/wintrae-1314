@@ -465,3 +465,99 @@
   text-align: right;
   flex-shrink: 0;
 }
+
+.trendSection {
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 2rpx solid $color-border-light;
+}
+
+.trendHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.trendLegend {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  font-size: 20rpx;
+  color: $color-text-secondary;
+}
+
+.legendDot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 4rpx;
+
+  &.completed { background: $color-primary; }
+  &.confirmed { background: $color-success; }
+  &.rated { background: $color-warning; }
+}
+
+.trendChart {
+  display: flex;
+  align-items: flex-end;
+  gap: $spacing-xs;
+  height: 240rpx;
+}
+
+.trendDay {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+
+.trendBars {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4rpx;
+  padding-bottom: $spacing-xs;
+}
+
+.barWrap {
+  width: 10rpx;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+
+.trendBar {
+  width: 100%;
+  border-radius: 4rpx;
+  min-height: 4rpx;
+  transition: height $transition-base;
+
+  &.completed { background: linear-gradient(180deg, $color-primary 0%, $color-primary-light 100%); }
+  &.confirmed { background: linear-gradient(180deg, $color-success 0%, #73d13d 100%); }
+  &.rated { background: linear-gradient(180deg, $color-warning 0%, #ffd666 100%); }
+}
+
+.trendDayMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rpx;
+}
+
+.trendLabel {
+  font-size: 20rpx;
+  color: $color-text-secondary;
+}
+
+.trendRating {
+  font-size: 18rpx;
+  color: $color-warning;
+}
