@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import { View, Text, ScrollView } from '@tarojs/components'
 import Taro, { useDidShow, usePullDownRefresh } from '@tarojs/taro'
 import classNames from 'classnames'
-import type { RepairOrder, RepairStatus } from '@/types/repair'
-import { getRepairOrders } from '@/data/mockRepair'
+import type { RepairStatus } from '@/types/repair'
+import { useRepairStore } from '@/store/useRepairStore'
 import RepairCard from '@/components/RepairCard'
 import styles from './index.module.scss'
 
@@ -19,31 +19,12 @@ const tabs: { key: TabType; label: string }[] = [
 
 const ListPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('all')
-  const [orders, setOrders] = useState<RepairOrder[]>([])
-
-  const loadData = useCallback(() => {
-    console.log('[ListPage] 加载工单列表')
-    try {
-      const orderList = getRepairOrders()
-      setOrders(orderList)
-    } catch (error) {
-      console.error('[ListPage] 加载工单列表失败', error)
-    }
-  }, [])
-
-  useEffect(() => {
-    loadData()
-  }, [loadData])
-
-  useDidShow(() => {
-    loadData()
-  })
+  const orders = useRepairStore(state => state.orders)
 
   usePullDownRefresh(() => {
-    loadData()
     setTimeout(() => {
       Taro.stopPullDownRefresh()
-    }, 1000)
+    }, 500)
   })
 
   const filteredOrders = useMemo(() => {

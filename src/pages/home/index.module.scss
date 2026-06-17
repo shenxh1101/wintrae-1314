@@ -9,6 +9,12 @@
   padding: $spacing-lg 0;
 }
 
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
 .greeting {
   font-size: $font-size-xxl;
   font-weight: $font-weight-bold;
@@ -19,6 +25,23 @@
 .subGreeting {
   font-size: $font-size-md;
   color: $color-text-secondary;
+}
+
+.roleSwitch {
+  padding: 12rpx 24rpx;
+  background: rgba(22, 119, 255, 0.1);
+  border-radius: $radius-md;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.7;
+  }
+}
+
+.roleSwitchText {
+  font-size: $font-size-xs;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
 }
 
 .quickEntry {
@@ -265,4 +288,180 @@
     font-size: $font-size-md;
     color: $color-text-tertiary;
   }
+}
+
+.workbenchCard {
+  background: $color-bg-card;
+  border-radius: $radius-xl;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+  border: 2rpx solid rgba(22, 119, 255, 0.2);
+  transition: all $transition-base;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.workbenchHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-md;
+}
+
+.workbenchTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.workbenchArrow {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+}
+
+.workbenchStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $spacing-md;
+}
+
+.workbenchStatItem {
+  text-align: center;
+  padding: $spacing-sm;
+  background: $color-bg-light;
+  border-radius: $radius-md;
+}
+
+.workbenchStatNum {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  margin-bottom: $spacing-xs;
+}
+
+.workbenchStatLabel {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.statsSection {
+  margin-bottom: $spacing-lg;
+}
+
+.serviceStatsCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.statsOverview {
+  margin-bottom: $spacing-lg;
+  padding-bottom: $spacing-lg;
+  border-bottom: 1rpx solid $color-border-light;
+}
+
+.overviewItem {
+  text-align: center;
+}
+
+.overviewNum {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  margin-bottom: $spacing-xs;
+}
+
+.overviewLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.rankSection {
+  margin-bottom: $spacing-md;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.rankTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+}
+
+.rankItem {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-sm;
+}
+
+.rankIndex {
+  width: 40rpx;
+  height: 40rpx;
+  line-height: 40rpx;
+  text-align: center;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  color: $color-text-white;
+  background: $color-primary;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &:nth-of-type(1) {
+    background: #faad14;
+  }
+
+  &:nth-of-type(2) {
+    background: #86909c;
+  }
+
+  &:nth-of-type(3) {
+    background: #d48806;
+  }
+}
+
+.rankName {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  width: 140rpx;
+  flex-shrink: 0;
+}
+
+.rankBarWrap {
+  flex: 1;
+  height: 16rpx;
+  background: $color-bg-light;
+  border-radius: 8rpx;
+  overflow: hidden;
+}
+
+.rankBar {
+  height: 100%;
+  background: linear-gradient(90deg, $color-primary 0%, $color-primary-light 100%);
+  border-radius: 8rpx;
+  transition: width $transition-base;
+}
+
+.facilityBar {
+  background: linear-gradient(90deg, $color-success 0%, #73d13d 100%);
+}
+
+.rankCount {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  width: 80rpx;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.rankRating {
+  font-size: $font-size-xs;
+  color: $color-warning;
+  width: 60rpx;
+  text-align: right;
+  flex-shrink: 0;
 }

@@ -2,10 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { View, Text, Image, Textarea, Button, Picker, ScrollView } from '@tarojs/components'
 import Taro, { useRouter, useDidShow } from '@tarojs/taro'
 import classNames from 'classnames'
-import type { RepairOrder, Announcement, ProcessingRecord, RepairPhoto, Maintainer } from '@/types/repair'
-import { getRepairOrderById, mockRepairOrders, maintainers } from '@/data/mockRepair'
+import type { RepairOrder, Announcement, RepairPhoto } from '@/types/repair'
+import { useRepairStore } from '@/store/useRepairStore'
 import { getAnnouncementById, getRelatedAnnouncements } from '@/data/mockAnnouncement'
-import { formatDateTime, formatLocation, categoryMap, statusMap } from '@/utils/format'
+import { formatDateTime, formatLocation, categoryMap } from '@/utils/format'
 import StatusBadge from '@/components/StatusBadge'
 import UrgencyBadge from '@/components/UrgencyBadge'
 import Timeline from '@/components/Timeline'
@@ -20,10 +20,23 @@ const DetailPage: React.FC = () => {
   const orderId = router.params?.id
   const announcementId = router.params?.announcementId
 
-  const [order, setOrder] = useState<RepairOrder | null>(null)
+  const orders = useRepairStore(state => state.orders)
+  const maintainers = useRepairStore(state => state.maintainers)
+  const currentRole = useRepairStore(state => state.currentRole)
+  const setRole = useRepairStore(state => state.setRole)
+  const acceptOrder = useRepairStore(state => state.acceptOrder)
+  const assignMaintainer = useRepairStore(state => state.assignMaintainer)
+  const addProcessRecord = useRepairStore(state => state.addProcessRecord)
+  const completeOrder = useRepairStore(state => state.completeOrder)
+  const updateExpectedTime = useRepairStore(state => state.updateExpectedTime)
+  const supplementOrder = useRepairStore(state => state.supplementOrder)
+  const rateOrder = useRepairStore(state => state.rateOrder)
+
+  const order = orders.find(o => o.id === orderId) || null
+
   const [announcement, setAnnouncement] = useState<Announcement | null>(null)
   const [relatedAnnouncements, setRelatedAnnouncements] = useState<Announcement[]>([])
-  const [role, setRole] = useState<RoleType>('resident')
+  const [role, setLocalRole] = useState<RoleType>(currentRole)
   const [showSupplementModal, setShowSupplementModal] = useState(false)
   const [supplementContent, setSupplementContent] = useState('')
   const [showProcessModal, setShowProcessModal] = useState(false)
@@ -40,72 +53,33 @@ const DetailPage: React.FC = () => {
   const [showCompletionModal, setShowCompletionModal] = useState(false)
   const [completionContent, setCompletionContent] = useState('')
 
-  const loadData = useCallback(() => {
-    console.log('[DetailPage] 加载详情数据', { orderId, announcementId })
-    
+  useEffect(() => {
+    setLocalRole(currentRole)
+  }, [currentRole])
+
+  const loadAnnouncement = useCallback(() => {
     if (announcementId) {
       const data = getAnnouncementById(announcementId)
       setAnnouncement(data || null)
       return
     }
-
-    if (orderId) {
-      const data = getRepairOrderById(orderId)
-      setOrder(data || null)
-      
-      if (data) {
-        const related = getRelatedAnnouncements(data.facilityType.id)
-        setRelatedAnnouncements(related)
-      }
+    if (order) {
+      const related = getRelatedAnnouncements(order.facilityType.id)
+      setRelatedAnnouncements(related)
     }
-  }, [orderId, announcementId])
+  }, [announcementId, order])
 
   useEffect(() => {
-    loadData()
-  }, [loadData])
+    loadAnnouncement()
+  }, [loadAnnouncement])
 
   useDidShow(() => {
-    loadData()
+    loadAnnouncement()
   })
 
-  const updateOrder = (updater: (order: RepairOrder) => RepairOrder) => {
-    if (!order) return
-    const updated = updater(order)
-    setOrder(updated)
-    
-    const index = mockRepairOrders.findIndex(o => o.id === order.id)
-    if (index !== -1) {
-      mockRepairOrders[index] = updated
-    }
-  }
-
-  const addRecord = (record: Omit<ProcessingRecord, 'id' | 'time'>) => {
-    const newRecord: ProcessingRecord = {
-      ...record,
-      id: `r_${Date.now()}`,
-      time: new Date().toISOString()
-    }
-    
-    updateOrder(prev => ({
-      ...prev,
-      processingRecords: [...prev.processingRecords, newRecord]
-    }))
-  }
-
   const handleAccept = () => {
-    console.log('[DetailPage] 物业接单')
-    updateOrder(prev => ({
-      ...prev,
-      status: 'processing',
-      acceptedTime: new Date().toISOString()
-    }))
-    addRecord({
-      type: 'accept',
-      title: '物业接单',
-      content: '物业已接单，正在安排维修人员',
-      operator: '物业管理员',
-      operatorRole: 'property'
-    })
+    if (!order) return
+    acceptOrder(order.id)
     Taro.showToast({ title: '接单成功', icon: 'success' })
   }
 
@@ -114,23 +88,8 @@ const DetailPage: React.FC = () => {
       Taro.showToast({ title: '请选择维修人员', icon: 'none' })
       return
     }
-    
-    const maintainer = maintainers.find(m => m.id === selectedMaintainer)
-    if (!maintainer) return
-    
-    console.log('[DetailPage] 分派维修人员:', maintainer.name)
-    updateOrder(prev => ({
-      ...prev,
-      assignedTo: maintainer.name,
-      assignedTime: new Date().toISOString()
-    }))
-    addRecord({
-      type: 'assign',
-      title: '分派维修人员',
-      content: `已分派${maintainer.name}处理此工单`,
-      operator: '物业管理员',
-      operatorRole: 'property'
-    })
+    if (!order) return
+    assignMaintainer(order.id, selectedMaintainer)
     setShowAssignModal(false)
     setSelectedMaintainer('')
     Taro.showToast({ title: '分派成功', icon: 'success' })
@@ -141,16 +100,8 @@ const DetailPage: React.FC = () => {
       Taro.showToast({ title: '请填写处理记录', icon: 'none' })
       return
     }
-    
-    console.log('[DetailPage] 填写处理记录')
-    addRecord({
-      type: 'process',
-      title: '维修中',
-      content: processContent.trim(),
-      operator: order?.assignedTo || '维修人员',
-      operatorRole: 'maintainer',
-      photos: processPhotos.length > 0 ? [...processPhotos] : undefined
-    })
+    if (!order) return
+    addProcessRecord(order.id, processContent.trim(), processPhotos)
     setShowProcessModal(false)
     setProcessContent('')
     setProcessPhotos([])
@@ -162,21 +113,8 @@ const DetailPage: React.FC = () => {
       Taro.showToast({ title: '请填写完工说明', icon: 'none' })
       return
     }
-    
-    console.log('[DetailPage] 完工确认')
-    updateOrder(prev => ({
-      ...prev,
-      status: 'completed',
-      completedTime: new Date().toISOString()
-    }))
-    addRecord({
-      type: 'complete',
-      title: '维修完成',
-      content: completionContent.trim(),
-      operator: order?.assignedTo || '维修人员',
-      operatorRole: 'maintainer',
-      photos: completionPhotos.length > 0 ? [...completionPhotos] : undefined
-    })
+    if (!order) return
+    completeOrder(order.id, completionContent.trim(), completionPhotos)
     setShowCompletionModal(false)
     setCompletionContent('')
     setCompletionPhotos([])
@@ -184,7 +122,6 @@ const DetailPage: React.FC = () => {
   }
 
   const handleConfirmComplete = () => {
-    console.log('[DetailPage] 住户确认完成')
     Taro.showModal({
       title: '确认完成',
       content: '确认维修已完成？确认后可以进行评价',
@@ -201,22 +138,8 @@ const DetailPage: React.FC = () => {
       Taro.showToast({ title: '请选择评分', icon: 'none' })
       return
     }
-    
-    console.log('[DetailPage] 提交评价:', { rating, ratingComment })
-    updateOrder(prev => ({
-      ...prev,
-      status: 'rated',
-      rating,
-      ratingComment: ratingComment.trim(),
-      ratedTime: new Date().toISOString()
-    }))
-    addRecord({
-      type: 'rate',
-      title: '住户评价',
-      content: ratingComment.trim() || `评分${rating}星`,
-      operator: '业主',
-      operatorRole: 'resident'
-    })
+    if (!order) return
+    rateOrder(order.id, rating, ratingComment)
     setShowRatingModal(false)
     setRating(0)
     setRatingComment('')
@@ -228,15 +151,8 @@ const DetailPage: React.FC = () => {
       Taro.showToast({ title: '请输入补充说明', icon: 'none' })
       return
     }
-    
-    console.log('[DetailPage] 住户补充说明')
-    addRecord({
-      type: 'supplement',
-      title: '住户补充说明',
-      content: supplementContent.trim(),
-      operator: '业主',
-      operatorRole: 'resident'
-    })
+    if (!order) return
+    supplementOrder(order.id, supplementContent.trim())
     setShowSupplementModal(false)
     setSupplementContent('')
     Taro.showToast({ title: '已提交补充说明', icon: 'success' })
@@ -247,36 +163,24 @@ const DetailPage: React.FC = () => {
       Taro.showToast({ title: '请选择预计时间', icon: 'none' })
       return
     }
-    
-    console.log('[DetailPage] 变更预计时间:', expectedTime)
-    const date = new Date(expectedTime)
-    updateOrder(prev => ({
-      ...prev,
-      expectedTime: date.toISOString()
-    }))
-    addRecord({
-      type: 'process',
-      title: '变更预计完成时间',
-      content: `预计完成时间变更为${formatDateTime(date.toISOString())}`,
-      operator: '物业管理员',
-      operatorRole: 'property'
-    })
+    if (!order) return
+    updateExpectedTime(order.id, expectedTime)
     setShowTimeModal(false)
     setExpectedTime('')
     Taro.showToast({ title: '已更新预计时间', icon: 'success' })
   }
 
   const handleAnnouncementClick = (id: string) => {
-    console.log('[DetailPage] 查看相关公告:', id)
     Taro.redirectTo({ url: `/pages/detail/index?announcementId=${id}` })
   }
 
   const handleRoleSwitch = () => {
     const newRole = role === 'resident' ? 'property' : 'resident'
+    setLocalRole(newRole)
     setRole(newRole)
-    Taro.showToast({ 
-      title: `已切换到${newRole === 'resident' ? '住户' : '物业'}端`, 
-      icon: 'none' 
+    Taro.showToast({
+      title: `已切换到${newRole === 'resident' ? '住户' : '物业'}端`,
+      icon: 'none'
     })
   }
 
@@ -290,9 +194,7 @@ const DetailPage: React.FC = () => {
               <Image src={announcement.coverImage} mode="aspectFill" />
             </View>
           )}
-          
           <Text className={styles.title}>{announcement.title}</Text>
-          
           <View className={styles.meta}>
             <View
               className={styles.categoryBadge}
@@ -306,10 +208,8 @@ const DetailPage: React.FC = () => {
             <Text>🏢 {announcement.publisher}</Text>
             <Text>📅 {formatDateTime(announcement.publishTime)}</Text>
           </View>
-          
           <Text className={styles.content}>{announcement.content}</Text>
         </View>
-        
         <View style={{ height: 80 }} />
       </ScrollView>
     )
@@ -336,11 +236,11 @@ const DetailPage: React.FC = () => {
 
   return (
     <ScrollView className={styles.container} scrollY>
-      <View 
-        style={{ 
-          position: 'absolute', 
-          right: 32, 
-          top: 20, 
+      <View
+        style={{
+          position: 'absolute',
+          right: 32,
+          top: 20,
           zIndex: 100,
           padding: '8rpx 24rpx',
           background: 'rgba(255,255,255,0.9)',
@@ -432,6 +332,12 @@ const DetailPage: React.FC = () => {
             <View className={styles.infoValue}>{order.assignedTo}</View>
           </View>
         )}
+        {order.completedTime && (
+          <View style={{ marginTop: 24 }}>
+            <View className={styles.infoLabel}>完工时间</View>
+            <View className={styles.infoValue}>{formatDateTime(order.completedTime)}</View>
+          </View>
+        )}
       </View>
 
       <View className={styles.section}>
@@ -482,8 +388,8 @@ const DetailPage: React.FC = () => {
             <Button className={styles.halfBtn} onClick={() => setShowProcessModal(true)}>
               填写处理记录
             </Button>
-            <Button 
-              className={classNames(styles.halfBtn, styles.primary)} 
+            <Button
+              className={classNames(styles.halfBtn, styles.primary)}
               onClick={() => setShowTimeModal(true)}
             >
               变更预计时间
@@ -491,8 +397,8 @@ const DetailPage: React.FC = () => {
           </View>
         )}
         {canComplete && (
-          <Button 
-            className={classNames(styles.footerBtn, styles.success)} 
+          <Button
+            className={classNames(styles.footerBtn, styles.success)}
             onClick={() => setShowCompletionModal(true)}
           >
             完工确认
@@ -527,14 +433,14 @@ const DetailPage: React.FC = () => {
               maxlength={500}
             />
             <View className={styles.modalActions}>
-              <Button 
-                className={classNames(styles.modalBtn, styles.cancel)} 
+              <Button
+                className={classNames(styles.modalBtn, styles.cancel)}
                 onClick={() => setShowSupplementModal(false)}
               >
                 取消
               </Button>
-              <Button 
-                className={classNames(styles.modalBtn, styles.confirm)} 
+              <Button
+                className={classNames(styles.modalBtn, styles.confirm)}
                 onClick={handleSupplement}
               >
                 提交
@@ -557,14 +463,14 @@ const DetailPage: React.FC = () => {
             />
             <PhotoUpload photos={processPhotos} onChange={setProcessPhotos} maxCount={3} />
             <View className={styles.modalActions} style={{ marginTop: 24 }}>
-              <Button 
-                className={classNames(styles.modalBtn, styles.cancel)} 
+              <Button
+                className={classNames(styles.modalBtn, styles.cancel)}
                 onClick={() => setShowProcessModal(false)}
               >
                 取消
               </Button>
-              <Button 
-                className={classNames(styles.modalBtn, styles.confirm)} 
+              <Button
+                className={classNames(styles.modalBtn, styles.confirm)}
                 onClick={handleProcess}
               >
                 提交
@@ -592,6 +498,14 @@ const DetailPage: React.FC = () => {
               >
                 <View style={{ fontWeight: 600, marginBottom: 8 }}>
                   👷 {m.name} {m.status === 'busy' && '（忙碌中）'}
+                  <Text style={{
+                    marginLeft: 12,
+                    fontSize: 22,
+                    color: m.status === 'free' ? '#52c41a' : '#faad14',
+                    fontWeight: 400
+                  }}>
+                    {m.status === 'free' ? '空闲' : '忙碌'}
+                  </Text>
                 </View>
                 <View style={{ fontSize: 24, color: '#86909c' }}>
                   特长：{m.specialty.join('、')}
@@ -599,14 +513,14 @@ const DetailPage: React.FC = () => {
               </View>
             ))}
             <View className={styles.modalActions}>
-              <Button 
-                className={classNames(styles.modalBtn, styles.cancel)} 
+              <Button
+                className={classNames(styles.modalBtn, styles.cancel)}
                 onClick={() => setShowAssignModal(false)}
               >
                 取消
               </Button>
-              <Button 
-                className={classNames(styles.modalBtn, styles.confirm)} 
+              <Button
+                className={classNames(styles.modalBtn, styles.confirm)}
                 onClick={handleAssign}
               >
                 确认分派
@@ -631,14 +545,14 @@ const DetailPage: React.FC = () => {
               </View>
             </Picker>
             <View className={styles.modalActions} style={{ marginTop: 32 }}>
-              <Button 
-                className={classNames(styles.modalBtn, styles.cancel)} 
+              <Button
+                className={classNames(styles.modalBtn, styles.cancel)}
                 onClick={() => setShowTimeModal(false)}
               >
                 取消
               </Button>
-              <Button 
-                className={classNames(styles.modalBtn, styles.confirm)} 
+              <Button
+                className={classNames(styles.modalBtn, styles.confirm)}
                 onClick={handleUpdateTime}
               >
                 确认
@@ -661,14 +575,14 @@ const DetailPage: React.FC = () => {
             />
             <PhotoUpload photos={completionPhotos} onChange={setCompletionPhotos} maxCount={3} />
             <View className={styles.modalActions} style={{ marginTop: 24 }}>
-              <Button 
-                className={classNames(styles.modalBtn, styles.cancel)} 
+              <Button
+                className={classNames(styles.modalBtn, styles.cancel)}
                 onClick={() => setShowCompletionModal(false)}
               >
                 取消
               </Button>
-              <Button 
-                className={classNames(styles.modalBtn, styles.confirm)} 
+              <Button
+                className={classNames(styles.modalBtn, styles.confirm)}
                 onClick={handleComplete}
               >
                 确认完工
@@ -694,14 +608,14 @@ const DetailPage: React.FC = () => {
               maxlength={200}
             />
             <View className={styles.modalActions} style={{ marginTop: 24 }}>
-              <Button 
-                className={classNames(styles.modalBtn, styles.cancel)} 
+              <Button
+                className={classNames(styles.modalBtn, styles.cancel)}
                 onClick={() => setShowRatingModal(false)}
               >
                 取消
               </Button>
-              <Button 
-                className={classNames(styles.modalBtn, styles.confirm)} 
+              <Button
+                className={classNames(styles.modalBtn, styles.confirm)}
                 onClick={handleSubmitRating}
               >
                 提交评价

@@ -254,3 +254,15 @@
     opacity: 0.5;
   }
 }
+
+.errorBorder {
+  border-color: $color-error !important;
+}
+
+.errorText {
+  display: block;
+  margin-top: $spacing-xs;
+  font-size: $font-size-xs;
+  color: $color-error;
+  line-height: 1.4;
+}

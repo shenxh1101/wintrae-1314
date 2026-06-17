@@ -1,0 +1,389 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  padding: $spacing-md $page-padding 160rpx;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.summarySection {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  border-radius: $radius-xl;
+  padding: $spacing-xl;
+  color: $color-text-white;
+  margin-bottom: $spacing-lg;
+  box-shadow: 0 8rpx 32rpx rgba(22, 119, 255, 0.3);
+}
+
+.summaryTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  margin-bottom: $spacing-lg;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $spacing-md;
+}
+
+.summaryItem {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: $radius-md;
+  padding: $spacing-sm $spacing-xs;
+}
+
+.summaryNum {
+  font-size: 40rpx;
+  font-weight: $font-weight-bold;
+  margin-bottom: 4rpx;
+}
+
+.summaryLabel {
+  font-size: $font-size-xs;
+  opacity: 0.9;
+}
+
+.filterTabs {
+  display: flex;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-lg;
+  overflow-x: auto;
+  padding-bottom: 8rpx;
+}
+
+.filterTab {
+  flex-shrink: 0;
+  padding: 16rpx 32rpx;
+  background: $color-bg-card;
+  border-radius: $radius-button;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  border: 2rpx solid $color-border;
+  transition: all $transition-base;
+
+  &.active {
+    background: $color-primary;
+    color: $color-text-white;
+    border-color: $color-primary;
+  }
+
+  &.urgent {
+    &.active {
+      background: $color-error;
+      border-color: $color-error;
+    }
+  }
+
+  &.overdue {
+    &.active {
+      background: $color-warning;
+      border-color: $color-warning;
+    }
+  }
+}
+
+.tabCount {
+  margin-left: 8rpx;
+  font-size: $font-size-xs;
+  opacity: 0.8;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.maintainerSection {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.maintainerList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.maintainerItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-md;
+  background: $color-bg-light;
+  border-radius: $radius-md;
+}
+
+.maintainerInfo {
+  flex: 1;
+}
+
+.maintainerName {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: 8rpx;
+}
+
+.maintainerSpecialty {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.maintainerStatus {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.statusBadge {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 8rpx 16rpx;
+  border-radius: $radius-xs;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+
+  &.free {
+    background: rgba(82, 196, 26, 0.1);
+    color: $color-success;
+  }
+
+  &.busy {
+    background: rgba(250, 173, 20, 0.1);
+    color: $color-warning;
+  }
+}
+
+.statusDot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+
+  .free & {
+    background: $color-success;
+  }
+
+  .busy & {
+    background: $color-warning;
+  }
+}
+
+.maintainerCount {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.orderList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.orderCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+  transition: all $transition-base;
+  border-left: 8rpx solid transparent;
+
+  &.urgent {
+    border-left-color: $color-error;
+  }
+
+  &.overdue {
+    border-left-color: $color-warning;
+  }
+
+  &:active {
+    transform: scale(0.99);
+  }
+}
+
+.orderHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-sm;
+}
+
+.orderTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  flex: 1;
+  @include text-ellipsis;
+}
+
+.orderBadges {
+  display: flex;
+  gap: 8rpx;
+  flex-shrink: 0;
+  margin-left: $spacing-sm;
+}
+
+.orderBadge {
+  padding: 4rpx 12rpx;
+  border-radius: $radius-xs;
+  font-size: 20rpx;
+  font-weight: $font-weight-medium;
+
+  &.urgent {
+    background: rgba(255, 77, 79, 0.1);
+    color: $color-error;
+  }
+
+  &.critical {
+    background: rgba(255, 77, 79, 0.15);
+    color: $color-error;
+  }
+
+  &.pending {
+    background: rgba(250, 173, 20, 0.1);
+    color: $color-warning;
+  }
+
+  &.processing {
+    background: rgba(22, 119, 255, 0.1);
+    color: $color-primary;
+  }
+
+  &.overdue {
+    background: rgba(255, 77, 79, 0.1);
+    color: $color-error;
+  }
+}
+
+.orderMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  margin-bottom: $spacing-sm;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.orderMetaItem {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.orderDesc {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: $line-height-normal;
+  @include text-ellipsis-multi(2);
+  margin-bottom: $spacing-md;
+}
+
+.orderActions {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.actionBtn {
+  @include button-reset;
+  flex: 1;
+  height: 64rpx;
+  font-size: $font-size-sm;
+  border-radius: $radius-md;
+  font-weight: $font-weight-medium;
+  transition: all $transition-base;
+
+  &.primary {
+    background: $color-primary;
+    color: $color-text-white;
+  }
+
+  &.secondary {
+    background: $color-bg-light;
+    color: $color-text-secondary;
+    border: 2rpx solid $color-border;
+  }
+
+  &.success {
+    background: $color-success;
+    color: $color-text-white;
+  }
+
+  &:active {
+    opacity: 0.8;
+    transform: scale(0.98);
+  }
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xl * 3 0;
+
+  .emptyIcon {
+    font-size: 100rpx;
+    margin-bottom: $spacing-md;
+  }
+
+  .emptyText {
+    font-size: $font-size-md;
+    color: $color-text-tertiary;
+    margin-bottom: $spacing-xs;
+  }
+
+  .emptySubText {
+    font-size: $font-size-sm;
+    color: $color-text-disabled;
+  }
+}
+
+.floatingActions {
+  position: fixed;
+  bottom: 40rpx;
+  right: $page-padding;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  z-index: 100;
+}
+
+.floatingBtn {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.15);
+  transition: all $transition-base;
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &.primary {
+    background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+    color: $color-text-white;
+    font-size: 40rpx;
+  }
+
+  &.urgent {
+    background: linear-gradient(135deg, $color-error 0%, #ff7875 100%);
+    color: $color-text-white;
+    font-size: 32rpx;
+  }
+}

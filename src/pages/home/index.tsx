@@ -1,47 +1,32 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useMemo } from 'react'
 import { View, Text, Button, Swiper, SwiperItem, Image, ScrollView } from '@tarojs/components'
-import Taro, { useDidShow, usePullDownRefresh } from '@tarojs/taro'
+import Taro, { usePullDownRefresh } from '@tarojs/taro'
 import classNames from 'classnames'
-import type { RepairOrder, Announcement, FacilityType } from '@/types/repair'
-import { getRepairOrders } from '@/data/mockRepair'
+import type { Announcement, FacilityType } from '@/types/repair'
+import { useRepairStore, facilityTypes } from '@/store/useRepairStore'
 import { getAnnouncements } from '@/data/mockAnnouncement'
-import { facilityTypes } from '@/data/mockRepair'
 import { formatTime, categoryMap } from '@/utils/format'
 import styles from './index.module.scss'
 
 const HomePage: React.FC = () => {
-  const [orders, setOrders] = useState<RepairOrder[]>([])
-  const [announcements, setAnnouncements] = useState<Announcement[]>([])
-  const [stats, setStats] = useState({ pending: 0, processing: 0, completed: 0, rated: 0 })
+  const orders = useRepairStore(state => state.orders)
+  const getServiceStats = useRepairStore(state => state.getServiceStats)
+  const currentRole = useRepairStore(state => state.currentRole)
+  const [announcements] = useState<Announcement[]>(getAnnouncements())
 
-  const loadData = useCallback(() => {
-    console.log('[HomePage] 加载首页数据')
-    const orderList = getRepairOrders()
-    const announcementList = getAnnouncements()
-    
-    setOrders(orderList)
-    setAnnouncements(announcementList)
-    setStats({
-      pending: orderList.filter(o => o.status === 'pending').length,
-      processing: orderList.filter(o => o.status === 'processing').length,
-      completed: orderList.filter(o => o.status === 'completed').length,
-      rated: orderList.filter(o => o.status === 'rated').length
-    })
-  }, [])
+  const stats = useMemo(() => ({
+    pending: orders.filter(o => o.status === 'pending').length,
+    processing: orders.filter(o => o.status === 'processing').length,
+    completed: orders.filter(o => o.status === 'completed').length,
+    rated: orders.filter(o => o.status === 'rated').length
+  }), [orders])
 
-  useEffect(() => {
-    loadData()
-  }, [loadData])
-
-  useDidShow(() => {
-    loadData()
-  })
+  const serviceStats = useMemo(() => getServiceStats(), [orders, getServiceStats])
 
   usePullDownRefresh(() => {
-    loadData()
     setTimeout(() => {
       Taro.stopPullDownRefresh()
-    }, 1000)
+    }, 500)
   })
 
   const handleQuickRepair = () => {
@@ -76,6 +61,19 @@ const HomePage: React.FC = () => {
     Taro.switchTab({ url: '/pages/announcement/index' })
   }
 
+  const handleWorkbench = () => {
+    Taro.navigateTo({ url: '/pages/workbench/index' })
+  }
+
+  const handleRoleSwitch = () => {
+    const newRole = currentRole === 'resident' ? 'property' : 'resident'
+    useRepairStore.getState().setRole(newRole)
+    Taro.showToast({
+      title: `已切换到${newRole === 'resident' ? '住户' : '物业'}端`,
+      icon: 'none'
+    })
+  }
+
   const bannerAnnouncements = announcements.filter(a => a.isTop).slice(0, 3)
   const latestAnnouncements = announcements.slice(0, 3)
   const myOrders = orders.slice(0, 3)
@@ -83,8 +81,19 @@ const HomePage: React.FC = () => {
   return (
     <ScrollView className={styles.container} scrollY>
       <View className={styles.header}>
-        <Text className={styles.greeting}>您好，业主</Text>
-        <Text className={styles.subGreeting}>欢迎使用小区报修服务</Text>
+        <View className={styles.headerRow}>
+          <View>
+            <Text className={styles.greeting}>
+              {currentRole === 'property' ? '您好，物业管理员' : '您好，业主'}
+            </Text>
+            <Text className={styles.subGreeting}>欢迎使用小区报修服务</Text>
+          </View>
+          <View className={styles.roleSwitch} onClick={handleRoleSwitch}>
+            <Text className={styles.roleSwitchText}>
+              切换至{currentRole === 'resident' ? '物业' : '住户'}
+            </Text>
+          </View>
+        </View>
       </View>
 
       <View className={styles.quickEntry}>
@@ -95,7 +104,94 @@ const HomePage: React.FC = () => {
             立即报修
           </Button>
         </View>
+        {currentRole === 'property' && (
+          <View className={styles.workbenchCard} onClick={handleWorkbench}>
+            <View className={styles.workbenchHeader}>
+              <Text className={styles.workbenchTitle}>🏢 物业工作台</Text>
+              <Text className={styles.workbenchArrow}>→</Text>
+            </View>
+            <View className={styles.workbenchStats}>
+              <View className={styles.workbenchStatItem}>
+                <Text className={styles.workbenchStatNum} style={{ color: '#faad14' }}>
+                  {stats.pending}
+                </Text>
+                <Text className={styles.workbenchStatLabel}>待接单</Text>
+              </View>
+              <View className={styles.workbenchStatItem}>
+                <Text className={styles.workbenchStatNum} style={{ color: '#1677ff' }}>
+                  {stats.processing}
+                </Text>
+                <Text className={styles.workbenchStatLabel}>处理中</Text>
+              </View>
+              <View className={styles.workbenchStatItem}>
+                <Text className={styles.workbenchStatNum} style={{ color: '#ff4d4f' }}>
+                  {serviceStats.avgRating > 0 ? serviceStats.avgRating : '--'}
+                </Text>
+                <Text className={styles.workbenchStatLabel}>平均评分</Text>
+              </View>
+            </View>
+          </View>
+        )}
       </View>
+
+      {(currentRole === 'property' || serviceStats.totalRated > 0) && (
+        <View className={styles.statsSection}>
+          <View className={styles.sectionTitle}>
+            <Text className={styles.titleText}>📊 服务统计</Text>
+          </View>
+          <View className={styles.serviceStatsCard}>
+            <View className={styles.statsOverview}>
+              <View className={styles.overviewItem}>
+                <Text className={styles.overviewNum} style={{ color: '#faad14', fontSize: 48 }}>
+                  ⭐ {serviceStats.avgRating || '--'}
+                </Text>
+                <Text className={styles.overviewLabel}>平均评分（共{serviceStats.totalRated}单评价）</Text>
+              </View>
+            </View>
+            {serviceStats.maintainerRank.length > 0 && (
+              <View className={styles.rankSection}>
+                <Text className={styles.rankTitle}>👷 维修人员完成量</Text>
+                {serviceStats.maintainerRank.map((m, idx) => (
+                  <View key={m.name} className={styles.rankItem}>
+                    <Text className={styles.rankIndex}>{idx + 1}</Text>
+                    <Text className={styles.rankName}>{m.name}</Text>
+                    <View className={styles.rankBarWrap}>
+                      <View
+                        className={styles.rankBar}
+                        style={{
+                          width: `${Math.min(100, (m.count / (serviceStats.maintainerRank[0]?.count || 1)) * 100)}%`
+                        }}
+                      />
+                    </View>
+                    <Text className={styles.rankCount}>{m.count}单</Text>
+                    <Text className={styles.rankRating}>⭐{m.avgRating}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+            {serviceStats.facilityRank.length > 0 && (
+              <View className={styles.rankSection}>
+                <Text className={styles.rankTitle}>🔧 常见报修类型</Text>
+                {serviceStats.facilityRank.map((f, idx) => (
+                  <View key={f.name} className={styles.rankItem}>
+                    <Text className={styles.rankIndex}>{idx + 1}</Text>
+                    <Text className={styles.rankName}>{f.name}</Text>
+                    <View className={styles.rankBarWrap}>
+                      <View
+                        className={classNames(styles.rankBar, styles.facilityBar)}
+                        style={{
+                          width: `${Math.min(100, (f.count / (serviceStats.facilityRank[0]?.count || 1)) * 100)}%`
+                        }}
+                      />
+                    </View>
+                    <Text className={styles.rankCount}>{f.count}次</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        </View>
+      )}
 
       <View className={styles.statsGrid}>
         <View className={styles.statItem} onClick={() => Taro.switchTab({ url: '/pages/list/index' })}>

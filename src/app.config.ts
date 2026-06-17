@@ -4,7 +4,8 @@ export default defineAppConfig({
     'pages/list/index',
     'pages/announcement/index',
     'pages/submit/index',
-    'pages/detail/index'
+    'pages/detail/index',
+    'pages/workbench/index'
   ],
   window: {
     backgroundTextStyle: 'light',
