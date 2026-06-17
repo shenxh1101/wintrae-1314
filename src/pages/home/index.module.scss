@@ -1,0 +1,268 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  padding: 0 $page-padding;
+  min-height: 100vh;
+}
+
+.header {
+  padding: $spacing-lg 0;
+}
+
+.greeting {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.subGreeting {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+}
+
+.quickEntry {
+  margin-bottom: $spacing-lg;
+}
+
+.entryCard {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  border-radius: $radius-xl;
+  padding: $spacing-xl;
+  color: $color-text-white;
+  margin-bottom: $spacing-lg;
+  box-shadow: 0 8rpx 32rpx rgba(22, 119, 255, 0.3);
+  transition: all $transition-base;
+  
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.entryTitle {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  margin-bottom: $spacing-sm;
+}
+
+.entryDesc {
+  font-size: $font-size-md;
+  opacity: 0.9;
+  margin-bottom: $spacing-lg;
+}
+
+.entryBtn {
+  @include button-reset;
+  background: $color-text-white;
+  color: $color-primary;
+  border-radius: $radius-button;
+  height: $button-height-md;
+  padding: 0 $spacing-xl;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  transition: all $transition-base;
+  
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+}
+
+.statItem {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  text-align: center;
+  box-shadow: $shadow-card;
+}
+
+.statNum {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.statLabel {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.titleText {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.moreText {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.facilityGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+}
+
+.facilityItem {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg $spacing-sm;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-sm;
+  box-shadow: $shadow-card;
+  transition: all $transition-base;
+  
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.facilityIcon {
+  font-size: 48rpx;
+}
+
+.facilityName {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  text-align: center;
+}
+
+.banner {
+  margin-bottom: $spacing-lg;
+}
+
+.swiper {
+  height: 300rpx;
+  border-radius: $radius-lg;
+  overflow: hidden;
+}
+
+.slideItem {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  
+  Image {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.slideOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: $spacing-lg;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.6));
+  color: $color-text-white;
+}
+
+.slideTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  @include text-ellipsis;
+}
+
+.slideTime {
+  font-size: $font-size-xs;
+  opacity: 0.8;
+  margin-top: $spacing-xs;
+}
+
+.noticeCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+  
+  &:active {
+    transform: scale(0.99);
+  }
+}
+
+.noticeHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-sm;
+}
+
+.noticeTag {
+  padding: 2rpx 12rpx;
+  border-radius: $radius-xs;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  background: $color-bg-tag;
+  color: $color-primary;
+  flex-shrink: 0;
+}
+
+.noticeTitle {
+  flex: 1;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  @include text-ellipsis;
+}
+
+.noticeTop {
+  padding: 2rpx 12rpx;
+  border-radius: $radius-xs;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  background: rgba(255, 77, 79, 0.1);
+  color: #ff4d4f;
+  flex-shrink: 0;
+}
+
+.noticeContent {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: $line-height-normal;
+  @include text-ellipsis-multi(2);
+}
+
+.noticeTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: $spacing-sm;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xl * 2 0;
+  
+  .emptyIcon {
+    font-size: 80rpx;
+    margin-bottom: $spacing-md;
+  }
+  
+  .emptyText {
+    font-size: $font-size-md;
+    color: $color-text-tertiary;
+  }
+}

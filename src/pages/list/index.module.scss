@@ -1,0 +1,99 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  padding: 0 $page-padding;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.tabs {
+  display: flex;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-sm;
+  margin: $spacing-lg 0;
+  box-shadow: $shadow-card;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.tabItem {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: $button-height-md;
+  border-radius: $radius-md;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-secondary;
+  transition: all $transition-base;
+  
+  &.active {
+    background: $color-primary;
+    color: $color-text-white;
+    box-shadow: 0 4rpx 12rpx rgba(22, 119, 255, 0.3);
+  }
+}
+
+.tabCount {
+  margin-left: 8rpx;
+  padding: 0 12rpx;
+  border-radius: $radius-round;
+  background: rgba(255, 255, 255, 0.2);
+  font-size: $font-size-xs;
+}
+
+.list {
+  padding-bottom: 120rpx;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xl * 3 0;
+  
+  .emptyIcon {
+    font-size: 120rpx;
+    margin-bottom: $spacing-lg;
+  }
+  
+  .emptyText {
+    font-size: $font-size-md;
+    color: $color-text-tertiary;
+    margin-bottom: $spacing-sm;
+  }
+  
+  .emptySubText {
+    font-size: $font-size-sm;
+    color: $color-text-disabled;
+  }
+}
+
+.floatingBtn {
+  position: fixed;
+  right: $spacing-lg;
+  bottom: 160rpx;
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: $radius-round;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(22, 119, 255, 0.4);
+  z-index: 999;
+  transition: all $transition-base;
+  
+  &:active {
+    transform: scale(0.95);
+  }
+  
+  .btnIcon {
+    font-size: 48rpx;
+    color: $color-text-white;
+  }
+}

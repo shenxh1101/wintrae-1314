@@ -1,0 +1,32 @@
+@use '@/styles/variables.scss' as *;
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rpx 16rpx;
+  border-radius: $radius-sm;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  white-space: nowrap;
+  
+  &.pending {
+    background: rgba(250, 173, 20, 0.1);
+    color: #faad14;
+  }
+  
+  &.processing {
+    background: rgba(22, 119, 255, 0.1);
+    color: #1677ff;
+  }
+  
+  &.completed {
+    background: rgba(82, 196, 26, 0.1);
+    color: #52c41a;
+  }
+  
+  &.rated {
+    background: rgba(134, 144, 156, 0.1);
+    color: #86909c;
+  }
+}

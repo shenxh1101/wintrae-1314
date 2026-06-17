@@ -1,0 +1,256 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  padding: $spacing-lg $page-padding 200rpx;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.section {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-lg;
+}
+
+.sectionIcon {
+  font-size: $font-size-xl;
+}
+
+.formItem {
+  margin-bottom: $spacing-lg;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  margin-bottom: $spacing-sm;
+  font-weight: $font-weight-medium;
+  
+  .required {
+    color: $color-error;
+    margin-right: 4rpx;
+  }
+}
+
+.facilityGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $spacing-md;
+}
+
+.facilityItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-md $spacing-sm;
+  border-radius: $radius-md;
+  border: 2rpx solid $color-border;
+  background: $color-bg-card;
+  transition: all $transition-base;
+  
+  &.selected {
+    border-color: $color-primary;
+    background: rgba(22, 119, 255, 0.05);
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.facilityIcon {
+  font-size: 48rpx;
+  margin-bottom: $spacing-xs;
+}
+
+.facilityName {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  text-align: center;
+  
+  .selected & {
+    color: $color-primary;
+    font-weight: $font-weight-medium;
+  }
+}
+
+.locationRow {
+  display: flex;
+  gap: $spacing-md;
+}
+
+.locationItem {
+  flex: 1;
+}
+
+.pickerInput {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 80rpx;
+  padding: 0 $spacing-md;
+  border: 2rpx solid $color-border;
+  border-radius: $radius-md;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  background: $color-bg-card;
+  transition: all $transition-base;
+  
+  &.focused {
+    border-color: $color-primary;
+  }
+}
+
+.pickerValue {
+  flex: 1;
+}
+
+.pickerPlaceholder {
+  color: $color-text-disabled;
+}
+
+.pickerArrow {
+  color: $color-text-tertiary;
+  font-size: $font-size-md;
+}
+
+.input {
+  height: 80rpx;
+  padding: 0 $spacing-md;
+  border: 2rpx solid $color-border;
+  border-radius: $radius-md;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  background: $color-bg-card;
+  width: 100%;
+  box-sizing: border-box;
+  
+  &:focus {
+    border-color: $color-primary;
+  }
+}
+
+.textarea {
+  min-height: 200rpx;
+  padding: $spacing-md;
+  border: 2rpx solid $color-border;
+  border-radius: $radius-md;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  background: $color-bg-card;
+  width: 100%;
+  box-sizing: border-box;
+  line-height: $line-height-normal;
+  
+  &:focus {
+    border-color: $color-primary;
+  }
+}
+
+.textareaCount {
+  text-align: right;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: $spacing-xs;
+}
+
+.urgencyOptions {
+  display: flex;
+  gap: $spacing-md;
+}
+
+.urgencyOption {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 80rpx;
+  border: 2rpx solid $color-border;
+  border-radius: $radius-md;
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  background: $color-bg-card;
+  transition: all $transition-base;
+  
+  &.normal {
+    &.selected {
+      border-color: $color-primary;
+      background: rgba(22, 119, 255, 0.1);
+      color: $color-primary;
+      font-weight: $font-weight-medium;
+    }
+  }
+  
+  &.urgent {
+    &.selected {
+      border-color: $color-warning;
+      background: rgba(250, 173, 20, 0.1);
+      color: $color-warning;
+      font-weight: $font-weight-medium;
+    }
+  }
+  
+  &.critical {
+    &.selected {
+      border-color: $color-error;
+      background: rgba(255, 77, 79, 0.1);
+      color: $color-error;
+      font-weight: $font-weight-medium;
+    }
+  }
+  
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: $spacing-lg $page-padding;
+  background: $color-bg-card;
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.08);
+  z-index: 100;
+}
+
+.submitBtn {
+  @include button-reset;
+  width: 100%;
+  height: $button-height-lg;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  color: $color-text-white;
+  border-radius: $radius-button;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  transition: all $transition-base;
+  
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+  }
+}

@@ -1,0 +1,4 @@
+export default definePageConfig({
+  navigationBarTitleText: '公告通知',
+  enablePullDownRefresh: true
+})
