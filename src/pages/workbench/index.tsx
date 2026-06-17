@@ -74,15 +74,17 @@ const WorkbenchPage: React.FC = () => {
   const maintainerWithStats = useMemo(() => {
     return maintainers.map(m => {
       const activeOrders = orders.filter(o => o.assignedTo === m.name && o.status === 'processing')
-      const completedOrders = orders.filter(o => o.assignedTo === m.name && (o.status === 'completed' || o.status === 'rated'))
-      const ratedOrders = completedOrders.filter(o => o.rating)
+      const closedOrders = orders.filter(o =>
+        o.assignedTo === m.name && (o.status === 'completed' || o.status === 'rated')
+      )
+      const ratedOrders = closedOrders.filter(o => o.rating)
       const avgRating = ratedOrders.length > 0
         ? Number((ratedOrders.reduce((sum, o) => sum + (o.rating || 0), 0) / ratedOrders.length).toFixed(1))
         : 0
       return {
         ...m,
         activeCount: activeOrders.length,
-        completedCount: completedOrders.length,
+        completedCount: closedOrders.length,
         avgRating
       }
     })

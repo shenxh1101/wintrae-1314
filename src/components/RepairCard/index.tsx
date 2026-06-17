@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { View, Text, Image } from '@tarojs/components'
+import classNames from 'classnames'
 import type { RepairOrder } from '@/types/repair'
 import { formatTime, formatLocation } from '@/utils/format'
 import StatusBadge from '@/components/StatusBadge'
@@ -13,6 +14,24 @@ interface RepairCardProps {
 
 const RepairCard: React.FC<RepairCardProps> = ({ order, onClick }) => {
   const thumbUrl = order.photos?.[0]?.url
+
+  const completedPhotos = useMemo(() => {
+    if (order.status !== 'completed' && order.status !== 'rated') return []
+    const completeRecord = order.processingRecords
+      ?.slice()
+      .reverse()
+      .find(r => r.type === 'complete')
+    return completeRecord?.photos || []
+  }, [order.processingRecords, order.status])
+
+  const completedTime = useMemo(() => {
+    if (order.status !== 'completed' && order.status !== 'rated') return null
+    const completeRecord = order.processingRecords
+      ?.slice()
+      .reverse()
+      .find(r => r.type === 'complete')
+    return completeRecord?.time || null
+  }, [order.processingRecords, order.status])
 
   return (
     <View className={styles.card} onClick={onClick}>
@@ -45,14 +64,45 @@ const RepairCard: React.FC<RepairCardProps> = ({ order, onClick }) => {
               <Text>🔧</Text>
               <Text>{order.facilityType.name}</Text>
             </View>
+            {order.assignedTo && (
+              <View className={classNames(styles.metaItem, styles.maintainerMeta)}>
+                <Text>👷</Text>
+                <Text>{order.assignedTo}</Text>
+              </View>
+            )}
           </View>
         </View>
       </View>
 
+      {completedPhotos.length > 0 && (
+        <View className={styles.completedSection}>
+          <View className={styles.completedLabel}>
+            <Text>📸 完工照片</Text>
+          </View>
+          <View className={styles.completedPhotos}>
+            {completedPhotos.slice(0, 4).map((photo, idx) => (
+              <Image
+                key={idx}
+                className={styles.completedPhoto}
+                src={photo.url}
+                mode="aspectFill"
+              />
+            ))}
+            {completedPhotos.length > 4 && (
+              <View className={styles.completedPhotoMore}>
+                <Text>+{completedPhotos.length - 4}</Text>
+              </View>
+            )}
+          </View>
+        </View>
+      )}
+
       <View className={styles.footer}>
         <Text className={styles.orderNo}>单号：{order.orderNo}</Text>
-        {order.expectedTime && order.status === 'processing' ? (
+        {order.status === 'processing' && order.expectedTime ? (
           <Text className={styles.expectedTime}>预计 {formatTime(order.expectedTime)} 完成</Text>
+        ) : completedTime ? (
+          <Text className={styles.completedTime}>✅ {formatTime(completedTime)} 完工</Text>
         ) : (
           <Text className={styles.time}>{formatTime(order.submitTime)}</Text>
         )}

@@ -116,3 +116,55 @@
   font-size: $font-size-sm;
   color: $color-primary;
 }
+
+.completedTime {
+  font-size: $font-size-sm;
+  color: $color-success;
+}
+
+.maintainerMeta {
+  color: $color-primary;
+}
+
+.completedSection {
+  margin-bottom: $spacing-md;
+  padding: $spacing-md;
+  background: linear-gradient(135deg, rgba(82, 196, 26, 0.06) 0%, rgba(82, 196, 26, 0.02) 100%);
+  border-radius: $radius-md;
+  border: 2rpx solid rgba(82, 196, 26, 0.15);
+}
+
+.completedLabel {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-success;
+  margin-bottom: $spacing-sm;
+}
+
+.completedPhotos {
+  display: flex;
+  gap: $spacing-sm;
+  flex-wrap: wrap;
+}
+
+.completedPhoto {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: $radius-sm;
+  background: $color-bg-hover;
+  flex-shrink: 0;
+}
+
+.completedPhotoMore {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: $radius-sm;
+  background: $color-bg-hover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-secondary;
+  flex-shrink: 0;
+}

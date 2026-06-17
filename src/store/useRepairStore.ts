@@ -280,6 +280,7 @@ export const useRepairStore = create<RepairState>()(
       getServiceStats: () => {
         const orders = get().orders
         const ratedOrders = orders.filter(o => o.rating && o.status === 'rated')
+        const closedOrders = orders.filter(o => o.status === 'completed' || o.status === 'rated')
 
         const avgRating = ratedOrders.length > 0
           ? Number((ratedOrders.reduce((sum, o) => sum + (o.rating || 0), 0) / ratedOrders.length).toFixed(1))
@@ -288,11 +289,11 @@ export const useRepairStore = create<RepairState>()(
         const maintainerMap = new Map<string, { count: number; totalRating: number }>()
         const facilityMap = new Map<string, number>()
 
-        orders.forEach(o => {
+        closedOrders.forEach(o => {
           if (o.facilityType) {
             facilityMap.set(o.facilityType.name, (facilityMap.get(o.facilityType.name) || 0) + 1)
           }
-          if (o.assignedTo) {
+          if (o.assignedTo && (o.status === 'completed' || o.status === 'rated')) {
             const current = maintainerMap.get(o.assignedTo) || { count: 0, totalRating: 0 }
             current.count++
             if (o.rating) {
@@ -318,6 +319,7 @@ export const useRepairStore = create<RepairState>()(
         return {
           avgRating,
           totalRated: ratedOrders.length,
+          totalClosed: closedOrders.length,
           maintainerRank,
           facilityRank
         }

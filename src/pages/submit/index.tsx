@@ -79,7 +79,7 @@ const SubmitPage: React.FC = () => {
     }
   }, [])
 
-  const validateAll = useCallback((): boolean => {
+  const validateAll = useCallback((): { valid: boolean; errors: FormErrors } => {
     const newErrors: FormErrors = {}
     newErrors.facilityType = validateField('facilityType', selectedFacility)
     newErrors.building = validateField('building', location.building)
@@ -100,7 +100,7 @@ const SubmitPage: React.FC = () => {
       description: true,
       phone: true
     })
-    return !hasErrors
+    return { valid: !hasErrors, errors: newErrors }
   }, [validateField, selectedFacility, location, title, description, phone])
 
   const handleFieldTouch = useCallback((field: keyof FormErrors) => {
@@ -176,12 +176,30 @@ const SubmitPage: React.FC = () => {
   }
 
   const handleSubmit = async () => {
-    if (!validateAll()) {
-      const firstError = Object.entries(errors).find(([, v]) => v !== undefined)?.[1]
-      Taro.showToast({
-        title: firstError || '请填写完整信息',
-        icon: 'none',
-        duration: 2500
+    const { valid, errors: latestErrors } = validateAll()
+    if (!valid) {
+      const missingItems = Object.entries(latestErrors)
+        .filter(([, v]) => v !== undefined)
+        .map(([k]) => {
+          const labelMap: Record<string, string> = {
+            facilityType: '设施类型',
+            building: '楼栋',
+            unit: '单元',
+            room: '室号',
+            title: '问题标题',
+            description: '详细描述',
+            phone: '联系电话'
+          }
+          return labelMap[k] || k
+        })
+      const msg = missingItems.length > 0
+        ? `请补全以下内容：${missingItems.join('、')}`
+        : '请填写完整信息'
+      Taro.showModal({
+        title: '信息不完整',
+        content: msg,
+        showCancel: false,
+        confirmText: '好的'
       })
       return
     }
