@@ -73,6 +73,16 @@
     background: $color-warning;
     box-shadow: 0 0 0 2rpx $color-warning;
   }
+
+  &.urge {
+    background: $color-error;
+    box-shadow: 0 0 0 2rpx $color-error;
+  }
+
+  &.confirm {
+    background: $color-success;
+    box-shadow: 0 0 0 2rpx $color-success;
+  }
 }
 
 .content {

@@ -7,10 +7,38 @@
   padding: $spacing-lg;
   margin-bottom: $spacing-md;
   transition: all $transition-base;
-  
+
   &:active {
     transform: scale(0.99);
     box-shadow: $shadow-card-hover;
+  }
+
+  &.urged {
+    background: linear-gradient(90deg, rgba(255,77,79,0.06) 0%, $color-bg-card 30%);
+    border-left: 6rpx solid $color-error;
+    border-radius: $radius-lg;
+  }
+
+  &.pendingConfirm {
+    border-left: 6rpx solid $color-warning;
+    border-radius: $radius-lg;
+  }
+}
+
+.smallBadge {
+  padding: 4rpx 10rpx;
+  border-radius: $radius-xs;
+  font-size: 20rpx;
+  font-weight: $font-weight-medium;
+  line-height: 1.4;
+  color: $color-text-white;
+
+  &.urgedBadge {
+    background: $color-error;
+  }
+
+  &.confirmBadge {
+    background: $color-warning;
   }
 }
 

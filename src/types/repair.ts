@@ -1,4 +1,4 @@
-export type RepairStatus = 'pending' | 'processing' | 'completed' | 'rated'
+export type RepairStatus = 'pending' | 'processing' | 'completed' | 'confirming' | 'rated'
 
 export type UrgencyLevel = 'normal' | 'urgent' | 'critical'
 
@@ -24,13 +24,20 @@ export interface RepairPhoto {
 
 export interface ProcessingRecord {
   id: string
-  type: 'submit' | 'accept' | 'assign' | 'process' | 'complete' | 'rate' | 'supplement'
+  type: 'submit' | 'accept' | 'assign' | 'process' | 'complete' | 'confirm' | 'rate' | 'supplement' | 'urge'
   title: string
   content: string
   operator: string
   operatorRole: UserRole
   time: string
   photos?: RepairPhoto[]
+}
+
+export interface UrgeRecord {
+  id: string
+  time: string
+  operator: string
+  remark?: string
 }
 
 export interface RepairOrder {
@@ -51,10 +58,12 @@ export interface RepairOrder {
   assignedTo?: string
   assignedTime?: string
   completedTime?: string
+  confirmedTime?: string
   ratedTime?: string
   rating?: number
   ratingComment?: string
   processingRecords: ProcessingRecord[]
+  urgeRecords: UrgeRecord[]
   relatedAnnouncements?: string[]
 }
 

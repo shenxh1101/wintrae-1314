@@ -3,7 +3,8 @@ import type { RepairStatus, UrgencyLevel } from '@/types/repair'
 export const statusMap: Record<RepairStatus, { label: string; color: string }> = {
   pending: { label: '待接单', color: '#faad14' },
   processing: { label: '处理中', color: '#1677ff' },
-  completed: { label: '已完成', color: '#52c41a' },
+  completed: { label: '待确认', color: '#fa8c16' },
+  confirming: { label: '待确认', color: '#fa8c16' },
   rated: { label: '已评价', color: '#86909c' }
 }
 

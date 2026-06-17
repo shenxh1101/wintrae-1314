@@ -31,6 +31,8 @@ const DetailPage: React.FC = () => {
   const updateExpectedTime = useRepairStore(state => state.updateExpectedTime)
   const supplementOrder = useRepairStore(state => state.supplementOrder)
   const rateOrder = useRepairStore(state => state.rateOrder)
+  const urgeOrder = useRepairStore(state => state.urgeOrder)
+  const confirmOrder = useRepairStore(state => state.confirmOrder)
 
   const order = orders.find(o => o.id === orderId) || null
 
@@ -52,6 +54,8 @@ const DetailPage: React.FC = () => {
   const [completionPhotos, setCompletionPhotos] = useState<RepairPhoto[]>([])
   const [showCompletionModal, setShowCompletionModal] = useState(false)
   const [completionContent, setCompletionContent] = useState('')
+  const [showUrgeModal, setShowUrgeModal] = useState(false)
+  const [urgeRemark, setUrgeRemark] = useState('')
 
   useEffect(() => {
     setLocalRole(currentRole)
@@ -122,15 +126,25 @@ const DetailPage: React.FC = () => {
   }
 
   const handleConfirmComplete = () => {
+    if (!order) return
     Taro.showModal({
       title: '确认完成',
       content: '确认维修已完成？确认后可以进行评价',
       success: (res) => {
         if (res.confirm) {
+          confirmOrder(order.id)
           setShowRatingModal(true)
         }
       }
     })
+  }
+
+  const handleUrge = () => {
+    if (!order) return
+    urgeOrder(order.id, urgeRemark)
+    setShowUrgeModal(false)
+    setUrgeRemark('')
+    Taro.showToast({ title: '已催单，请耐心等待', icon: 'success' })
   }
 
   const handleSubmitRating = () => {
@@ -231,6 +245,7 @@ const DetailPage: React.FC = () => {
   const canProcess = role === 'property' && order.status === 'processing' && order.assignedTo
   const canComplete = role === 'property' && order.status === 'processing' && order.assignedTo
   const canConfirmComplete = role === 'resident' && order.status === 'completed'
+  const canUrge = role === 'resident' && (order.status === 'pending' || order.status === 'processing')
   const canSupplement = order.status !== 'rated'
   const canUpdateTime = role === 'property' && order.status === 'processing'
 
@@ -259,9 +274,24 @@ const DetailPage: React.FC = () => {
           <View className={styles.badges}>
             <StatusBadge status={order.status} />
             <UrgencyBadge urgency={order.urgency} />
+            {order.urgeRecords && order.urgeRecords.length > 0 && (
+              <View className={styles.urgeBadge}>
+                ⏰ 催单{order.urgeRecords.length}次
+              </View>
+            )}
           </View>
         </View>
         <Text className={styles.orderNo}>工单号：{order.orderNo}</Text>
+        {order.urgeRecords && order.urgeRecords.length > 0 && (
+          <View className={styles.urgeInfo}>
+            <Text className={styles.urgeIcon}>⏰</Text>
+            <Text className={styles.urgeText}>
+              最近催单：{formatDateTime(order.urgeRecords[order.urgeRecords.length - 1].time)}
+              {order.urgeRecords[order.urgeRecords.length - 1].remark &&
+                ` · ${order.urgeRecords[order.urgeRecords.length - 1].remark}`}
+            </Text>
+          </View>
+        )}
         <View className={styles.infoRow}>
           <View className={styles.infoItem}>
             <Text>{order.facilityType.icon}</Text>
@@ -409,7 +439,15 @@ const DetailPage: React.FC = () => {
             确认完成
           </Button>
         )}
-        {canSupplement && !canAccept && !canAssign && !canProcess && !canComplete && !canConfirmComplete && (
+        {canUrge && (
+          <Button
+            className={classNames(styles.footerBtn, styles.urgent)}
+            onClick={() => setShowUrgeModal(true)}
+          >
+            催单
+          </Button>
+        )}
+        {canSupplement && !canAccept && !canAssign && !canProcess && !canComplete && !canConfirmComplete && !canUrge && (
           <Button className={styles.footerBtn} onClick={() => setShowSupplementModal(true)}>
             补充说明
           </Button>
@@ -619,6 +657,38 @@ const DetailPage: React.FC = () => {
                 onClick={handleSubmitRating}
               >
                 提交评价
+              </Button>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {showUrgeModal && (
+        <View className={styles.modalOverlay} onClick={() => setShowUrgeModal(false)}>
+          <View className={styles.modalContent} onClick={e => e.stopPropagation()}>
+            <Text className={styles.modalTitle}>发起催单</Text>
+            <Text className={styles.tipText}>
+              您即将向物业发起催单，请填写催单说明：
+            </Text>
+            <Textarea
+              className={styles.modalInput}
+              placeholder="请输入催单说明（选填）..."
+              value={urgeRemark}
+              onInput={e => setUrgeRemark(e.detail.value)}
+              maxlength={200}
+            />
+            <View className={styles.modalActions} style={{ marginTop: 24 }}>
+              <Button
+                className={classNames(styles.modalBtn, styles.cancel)}
+                onClick={() => setShowUrgeModal(false)}
+              >
+                取消
+              </Button>
+              <Button
+                className={classNames(styles.modalBtn, styles.confirm)}
+                onClick={handleUrge}
+              >
+                确认催单
               </Button>
             </View>
           </View>

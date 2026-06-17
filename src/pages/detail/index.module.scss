@@ -43,6 +43,33 @@
   margin-bottom: $spacing-md;
 }
 
+.urgeBadge {
+  padding: 4rpx 12rpx;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: $radius-xs;
+  font-size: 20rpx;
+  color: #fff;
+  font-weight: $font-weight-medium;
+}
+
+.urgeInfo {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-sm $spacing-md;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: $radius-md;
+  margin-bottom: $spacing-md;
+}
+
+.urgeIcon { font-size: $font-size-md; }
+
+.urgeText {
+  font-size: $font-size-sm;
+  color: #fff3b0;
+  line-height: $line-height-normal;
+}
+
 .infoRow {
   display: flex;
   flex-wrap: wrap;
@@ -287,14 +314,18 @@
   font-size: $font-size-lg;
   font-weight: $font-weight-semibold;
   transition: all $transition-base;
-  
+
   &:active {
     opacity: 0.9;
     transform: scale(0.98);
   }
-  
+
   &:disabled {
     opacity: 0.5;
+  }
+
+  &.urgent {
+    background: linear-gradient(135deg, $color-error 0%, #ff7875 100%);
   }
 }
 
@@ -325,6 +356,13 @@
   color: $color-text-primary;
   text-align: center;
   margin-bottom: $spacing-lg;
+}
+
+.tipText {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: $line-height-normal;
+  margin-bottom: $spacing-md;
 }
 
 .modalInput {

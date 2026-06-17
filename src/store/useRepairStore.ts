@@ -1,15 +1,25 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import Taro from '@tarojs/taro'
-import type { RepairOrder, ProcessingRecord, FacilityType, RepairPhoto, BuildingInfo, UrgencyLevel, Maintainer } from '@/types/repair'
+import type { RepairOrder, ProcessingRecord, FacilityType, RepairPhoto, BuildingInfo, UrgencyLevel, Maintainer, RepairStatus, UrgeRecord } from '@/types/repair'
 import { mockRepairOrders, facilityTypes, maintainers as defaultMaintainers, buildings, units, rooms } from '@/data/mockRepair'
 import { generateOrderNo } from '@/utils/format'
 
 interface ServiceStats {
   avgRating: number
   totalRated: number
+  totalClosed: number
   maintainerRank: { name: string; count: number; avgRating: number }[]
   facilityRank: { name: string; count: number }[]
+}
+
+export interface OrderFilters {
+  keyword?: string
+  building?: string
+  facilityType?: string
+  urgency?: UrgencyLevel | ''
+  maintainerName?: string
+  status?: RepairStatus | 'all' | 'urgent' | 'overdue' | 'pendingConfirm' | 'urged'
 }
 
 interface RepairState {
@@ -22,6 +32,9 @@ interface RepairState {
   getOrdersByStatus: (status: string) => RepairOrder[]
   getUrgentOrders: () => RepairOrder[]
   getOverdueRiskOrders: () => RepairOrder[]
+  getPendingConfirmOrders: () => RepairOrder[]
+  getUrgedOrders: () => RepairOrder[]
+  getFilteredOrders: (filters: OrderFilters) => RepairOrder[]
 
   addOrder: (data: {
     facilityType: FacilityType
@@ -43,8 +56,10 @@ interface RepairState {
   updateExpectedTime: (orderId: string, time: string) => void
   addProcessRecord: (orderId: string, content: string, photos?: RepairPhoto[]) => void
   completeOrder: (orderId: string, content: string, photos?: RepairPhoto[]) => void
+  confirmOrder: (orderId: string) => void
   supplementOrder: (orderId: string, content: string) => void
   rateOrder: (orderId: string, rating: number, comment?: string) => void
+  urgeOrder: (orderId: string, remark?: string) => void
 
   setRole: (role: 'resident' | 'property') => void
   toggleMaintainerStatus: (maintainerId: string) => void
@@ -77,7 +92,9 @@ const taroStorage = {
 export const useRepairStore = create<RepairState>()(
   persist(
     (set, get) => ({
-      orders: [...mockRepairOrders].sort((a, b) => new Date(b.submitTime).getTime() - new Date(a.submitTime).getTime()),
+      orders: [...mockRepairOrders]
+        .map(o => ({ urgeRecords: [], ...o }))
+        .sort((a, b) => new Date(b.submitTime).getTime() - new Date(a.submitTime).getTime()),
       maintainers: [...defaultMaintainers],
       currentRole: 'resident',
 
@@ -99,6 +116,71 @@ export const useRepairStore = create<RepairState>()(
           if (o.status !== 'processing' || !o.expectedTime) return false
           const expected = new Date(o.expectedTime).getTime()
           return expected - now < 3600000 * 4
+        })
+      },
+
+      getPendingConfirmOrders: () => get().orders.filter(o => o.status === 'completed'),
+
+      getUrgedOrders: () => get().orders.filter(o => (o.urgeRecords?.length || 0) > 0 && (o.status === 'processing' || o.status === 'pending')),
+
+      getFilteredOrders: (filters) => {
+        const { keyword, building, facilityType, urgency, maintainerName, status } = filters
+        let result = [...get().orders]
+
+        if (keyword && keyword.trim()) {
+          const kw = keyword.trim().toLowerCase()
+          result = result.filter(o =>
+            o.title.toLowerCase().includes(kw) ||
+            o.description.toLowerCase().includes(kw) ||
+            o.orderNo.toLowerCase().includes(kw) ||
+            o.submitter.toLowerCase().includes(kw)
+          )
+        }
+
+        if (building) {
+          result = result.filter(o => o.location.building === building)
+        }
+
+        if (facilityType) {
+          result = result.filter(o => o.facilityType.id === facilityType || o.facilityType.name === facilityType)
+        }
+
+        if (urgency) {
+          result = result.filter(o => o.urgency === urgency)
+        }
+
+        if (maintainerName) {
+          result = result.filter(o => o.assignedTo === maintainerName)
+        }
+
+        if (status && status !== 'all') {
+          if (status === 'urgent') {
+            result = result.filter(o => o.urgency === 'urgent' || o.urgency === 'critical')
+          } else if (status === 'overdue') {
+            const now = Date.now()
+            result = result.filter(o => {
+              if (o.status !== 'processing' || !o.expectedTime) return false
+              const expected = new Date(o.expectedTime).getTime()
+              return expected - now < 3600000 * 4
+            })
+          } else if (status === 'pendingConfirm') {
+            result = result.filter(o => o.status === 'completed')
+          } else if (status === 'urged') {
+            result = result.filter(o => (o.urgeRecords?.length || 0) > 0 && (o.status === 'processing' || o.status === 'pending'))
+          } else {
+            result = result.filter(o => o.status === status)
+          }
+        }
+
+        return result.sort((a, b) => {
+          const urgencyOrder = { critical: 0, urgent: 1, normal: 2 } as const
+          if (urgencyOrder[a.urgency] !== urgencyOrder[b.urgency]) {
+            return urgencyOrder[a.urgency] - urgencyOrder[b.urgency]
+          }
+          if ((b.urgeRecords?.length || 0) !== (a.urgeRecords?.length || 0)) {
+            return (b.urgeRecords?.length || 0) - (a.urgeRecords?.length || 0)
+          }
+          return new Date(b.submitTime).getTime() - new Date(a.submitTime).getTime()
         })
       },
 
@@ -126,7 +208,8 @@ export const useRepairStore = create<RepairState>()(
               operatorRole: 'resident',
               time: new Date().toISOString()
             }
-          ]
+          ],
+          urgeRecords: []
         }
         set(state => ({
           orders: [newOrder, ...state.orders]
@@ -240,6 +323,48 @@ export const useRepairStore = create<RepairState>()(
         }
       },
 
+      confirmOrder: (orderId) => {
+        get().updateOrder(orderId, prev => ({
+          ...prev,
+          status: 'confirming',
+          confirmedTime: new Date().toISOString()
+        }))
+        get().addProcessingRecord(orderId, {
+          type: 'confirm',
+          title: '住户确认完成',
+          content: '住户已确认维修完成，可进行评价',
+          operator: '业主',
+          operatorRole: 'resident'
+        })
+      },
+
+      urgeOrder: (orderId, remark) => {
+        const order = get().getOrderById(orderId)
+        if (!order) return
+        const now = new Date().toISOString()
+        const lastUrge = order.urgeRecords?.[order.urgeRecords.length - 1]
+        if (lastUrge && Date.now() - new Date(lastUrge.time).getTime() < 60000) {
+          return
+        }
+        const urgeRecord: UrgeRecord = {
+          id: `u_${Date.now()}`,
+          time: now,
+          operator: order.submitter,
+          remark: remark?.trim()
+        }
+        get().updateOrder(orderId, prev => ({
+          ...prev,
+          urgeRecords: [...(prev.urgeRecords || []), urgeRecord]
+        }))
+        get().addProcessingRecord(orderId, {
+          type: 'urge',
+          title: '住户催单',
+          content: remark?.trim() || '住户发起催单，希望尽快处理',
+          operator: order.submitter,
+          operatorRole: 'resident'
+        })
+      },
+
       supplementOrder: (orderId, content) => {
         get().addProcessingRecord(orderId, {
           type: 'supplement',
@@ -280,7 +405,6 @@ export const useRepairStore = create<RepairState>()(
       getServiceStats: () => {
         const orders = get().orders
         const ratedOrders = orders.filter(o => o.rating && o.status === 'rated')
-        const closedOrders = orders.filter(o => o.status === 'completed' || o.status === 'rated')
 
         const avgRating = ratedOrders.length > 0
           ? Number((ratedOrders.reduce((sum, o) => sum + (o.rating || 0), 0) / ratedOrders.length).toFixed(1))
@@ -289,11 +413,11 @@ export const useRepairStore = create<RepairState>()(
         const maintainerMap = new Map<string, { count: number; totalRating: number }>()
         const facilityMap = new Map<string, number>()
 
-        closedOrders.forEach(o => {
+        ratedOrders.forEach(o => {
           if (o.facilityType) {
             facilityMap.set(o.facilityType.name, (facilityMap.get(o.facilityType.name) || 0) + 1)
           }
-          if (o.assignedTo && (o.status === 'completed' || o.status === 'rated')) {
+          if (o.assignedTo) {
             const current = maintainerMap.get(o.assignedTo) || { count: 0, totalRating: 0 }
             current.count++
             if (o.rating) {
@@ -319,7 +443,7 @@ export const useRepairStore = create<RepairState>()(
         return {
           avgRating,
           totalRated: ratedOrders.length,
-          totalClosed: closedOrders.length,
+          totalClosed: ratedOrders.length,
           maintainerRank,
           facilityRank
         }
@@ -327,7 +451,9 @@ export const useRepairStore = create<RepairState>()(
 
       resetToDefault: () => {
         set({
-          orders: [...mockRepairOrders].sort((a, b) => new Date(b.submitTime).getTime() - new Date(a.submitTime).getTime()),
+          orders: [...mockRepairOrders]
+            .map(o => ({ urgeRecords: [], ...o }))
+            .sort((a, b) => new Date(b.submitTime).getTime() - new Date(a.submitTime).getTime()),
           maintainers: [...defaultMaintainers]
         })
       }

@@ -34,12 +34,29 @@ const RepairCard: React.FC<RepairCardProps> = ({ order, onClick }) => {
   }, [order.processingRecords, order.status])
 
   return (
-    <View className={styles.card} onClick={onClick}>
+    <View
+      className={classNames(
+        styles.card,
+        order.urgeRecords?.length > 0 && styles.urged,
+        order.status === 'completed' && styles.pendingConfirm,
+      )}
+      onClick={onClick}
+    >
       <View className={styles.header}>
         <Text className={styles.title}>{order.title}</Text>
         <View className={styles.badges}>
           <UrgencyBadge urgency={order.urgency} />
           <StatusBadge status={order.status} />
+          {order.urgeRecords?.length > 0 && (
+            <View className={classNames(styles.smallBadge, styles.urgedBadge)}>
+              ⏰{order.urgeRecords.length}
+            </View>
+          )}
+          {order.status === 'completed' && (
+            <View className={classNames(styles.smallBadge, styles.confirmBadge)}>
+              待确认
+            </View>
+          )}
         </View>
       </View>
 

@@ -34,6 +34,136 @@
   padding: $spacing-sm $spacing-xs;
 }
 
+.filteredMeta {
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 2rpx solid rgba(255, 255, 255, 0.2);
+  font-size: $font-size-sm;
+  color: $color-text-white;
+  display: flex;
+  gap: $spacing-sm;
+  flex-wrap: wrap;
+
+  .urgentMeta { color: #fff3b0; }
+  .urgedMeta { color: #ffd4d4; }
+  .pendingConfirmMeta { color: #ffe0b2; }
+}
+
+.searchRow {
+  display: flex;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+  align-items: center;
+}
+
+.searchInputWrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  background: $color-bg-card;
+  border-radius: $radius-button;
+  padding: 0 $spacing-md;
+  height: 72rpx;
+  border: 2rpx solid $color-border;
+}
+
+.searchIcon { font-size: $font-size-md; }
+
+.searchInput {
+  flex: 1;
+  font-size: $font-size-sm;
+  height: 72rpx;
+}
+
+.filterToggle {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 0 $spacing-md;
+  height: 72rpx;
+  background: $color-bg-card;
+  border-radius: $radius-button;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  border: 2rpx solid $color-border;
+  transition: all $transition-base;
+
+  &.active {
+    background: $color-primary;
+    color: $color-text-white;
+    border-color: $color-primary;
+  }
+}
+
+.filterIcon {
+  font-size: $font-size-xs;
+}
+
+.filterPanel {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-md $spacing-lg $spacing-lg;
+  margin-bottom: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.filterRow {
+  display: flex;
+  align-items: center;
+  padding: $spacing-sm 0;
+  border-bottom: 2rpx solid $color-divider;
+
+  &:last-of-type { border-bottom: none; }
+}
+
+.filterLabel {
+  width: 160rpx;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  flex-shrink: 0;
+}
+
+.filterPicker {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+}
+
+.pickerArrow {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.filterActions {
+  display: flex;
+  gap: $spacing-sm;
+  margin-top: $spacing-md;
+}
+
+.filterReset,
+.filterClose {
+  @include button-reset;
+  flex: 1;
+  height: 72rpx;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+}
+
+.filterReset {
+  background: $color-bg-light;
+  color: $color-text-secondary;
+}
+
+.filterClose {
+  background: $color-primary;
+  color: $color-text-white;
+}
+
 .summaryNum {
   font-size: 40rpx;
   font-weight: $font-weight-bold;
@@ -80,6 +210,13 @@
     &.active {
       background: $color-warning;
       border-color: $color-warning;
+    }
+  }
+
+  &.urged {
+    &.active {
+      background: $color-error;
+      border-color: $color-error;
     }
   }
 }
@@ -209,9 +346,19 @@
     border-left-color: $color-warning;
   }
 
+  &.urged {
+    border-left-color: $color-error;
+    background: linear-gradient(90deg, rgba(255,77,79,0.06) 0%, $color-bg-card 30%);
+  }
+
   &:active {
     transform: scale(0.99);
   }
+}
+
+.resultCount {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
 }
 
 .orderHeader {
@@ -266,6 +413,34 @@
     background: rgba(255, 77, 79, 0.1);
     color: $color-error;
   }
+
+  &.urged {
+    background: rgba(255, 77, 79, 0.12);
+    color: $color-error;
+  }
+
+  &.completed, &.confirming {
+    background: rgba(250, 140, 22, 0.12);
+    color: $color-warning;
+  }
+}
+
+.urgeInfo {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-sm $spacing-md;
+  background: rgba(255,77,79,0.08);
+  border-radius: $radius-sm;
+  margin-bottom: $spacing-sm;
+}
+
+.urgeIcon { font-size: $font-size-sm; }
+
+.urgeText {
+  font-size: $font-size-xs;
+  color: $color-error;
+  font-weight: $font-weight-medium;
 }
 
 .orderMeta {
@@ -318,6 +493,11 @@
 
   &.success {
     background: $color-success;
+    color: $color-text-white;
+  }
+
+  &.warning {
+    background: $color-warning;
     color: $color-text-white;
   }
 
@@ -383,6 +563,18 @@
 
   &.urgent {
     background: linear-gradient(135deg, $color-error 0%, #ff7875 100%);
+    color: $color-text-white;
+    font-size: 32rpx;
+  }
+
+  &.urged {
+    background: linear-gradient(135deg, $color-error 0%, #ff9c6e 100%);
+    color: $color-text-white;
+    font-size: 32rpx;
+  }
+
+  &.confirm {
+    background: linear-gradient(135deg, $color-warning 0%, #ffc53d 100%);
     color: $color-text-white;
     font-size: 32rpx;
   }
